@@ -2,17 +2,17 @@
 from django.db import transaction
 import datetime
 import string
-from models import *
-from large_delete_all import large_delete_all
-from utils import removeDiacritic
-from CountryIOC import uci_country_codes
+from core.models import *
+from core.large_delete_all import large_delete_all
+from core.utils import removeDiacritic
+from core.CountryIOC import uci_country_codes
 
 tdf = '''
 1	Chris Froome	 United Kingdom	Team Sky	28	1
 2	Edvald Boasson Hagen	 Norway	Team Sky	26	DNS-13
 3	Peter Kennaugh	 United Kingdom	Team Sky	24	77
 4	Vasil Kiryienka	 Belarus	Team Sky	32	HD-9
-5	David López	 Spain	Team Sky	32	127
+5	David Lï¿½pez	 Spain	Team Sky	32	127
 6	Richie Porte	 Australia	Team Sky	28	19
 7	Kanstantsin Sivtsov	 Belarus	Team Sky	30	90
 8	Ian Stannard	 United Kingdom	Team Sky	26	135
@@ -29,37 +29,37 @@ tdf = '''
 21	Jurgen Van Den Broeck	 Belgium	Lotto-Belisol	30	DNS-6
 22	Lars Bak	 Denmark	Lotto-Belisol	33	108
 23	Bart De Clercq	 Belgium	Lotto-Belisol	26	38
-24	André Greipel	 Germany	Lotto-Belisol	30	129
+24	Andre Greipel	 Germany	Lotto-Belisol	30	129
 25	Adam Hansen	 Australia	Lotto-Belisol	32	72
 26	Greg Henderson	 New Zealand	Lotto-Belisol	36	162
-27	Jürgen Roelandts	 Belgium	Lotto-Belisol	27	160
+27	Jï¿½rgen Roelandts	 Belgium	Lotto-Belisol	27	160
 28	Marcel Sieberg	 Germany	Lotto-Belisol	31	DNF-19
 29	Frederik Willems	 Belgium	Lotto-Belisol	33	163
 31	Cadel Evans	 Australia	BMC Racing Team	36	39
 32	Brent Bookwalter	 United States	BMC Racing Team	29	91
 33	Marcus Burghardt	 Germany	BMC Racing Team	30	98
 34	Philippe Gilbert	 Belgium	BMC Racing Team	30	62
-35	Amaël Moinard	 France	BMC Racing Team	31	56
+35	Amaï¿½l Moinard	 France	BMC Racing Team	31	56
 36	Steve Morabito	  Switzerland	BMC Racing Team	30	35
 37	Manuel Quinziato	 Italy	BMC Racing Team	33	85
-38	Michael Schär	  Switzerland	BMC Racing Team	27	DNS-9
+38	Michael Schï¿½r	  Switzerland	BMC Racing Team	27	DNS-9
 39	Tejay van Garderen	 United States	BMC Racing Team	24	45
 41	Andy Schleck	 Luxembourg	RadioShack-Leopard	28	20
 42	Jan Bakelants	 Belgium	RadioShack-Leopard	27	18
 43	Laurent Didier	 Luxembourg	RadioShack-Leopard	28	53
 44	Tony Gallopin	 France	RadioShack-Leopard	25	58
 45	Markel Irizar	 Spain	RadioShack-Leopard	33	103
-46	Andreas Klöden	 Germany	RadioShack-Leopard	38	30
+46	Andreas Klï¿½den	 Germany	RadioShack-Leopard	38	30
 47	Maxime Monfort	 Belgium	RadioShack-Leopard	30	14
 48	Jens Voigt	 Germany	RadioShack-Leopard	41	67
 49	Haimar Zubeldia	 Spain	RadioShack-Leopard	36	36
 51	Pierre Rolland	 France	Team Europcar	26	24
 52	Yukiya Arashiro	 Japan	Team Europcar	28	99
-53	Jérôme Cousin	 France	Team Europcar	24	156
+53	Jï¿½rï¿½me Cousin	 France	Team Europcar	24	156
 54	Cyril Gautier	 France	Team Europcar	25	32
-55	Yohann Gène	 France	Team Europcar	31	158
+55	Yohann Gï¿½ne	 France	Team Europcar	31	158
 56	Davide Malacarne	 Italy	Team Europcar	25	49
-57	Kévin Reza	 France	Team Europcar	25	134
+57	Kï¿½vin Reza	 France	Team Europcar	25	134
 58	David Veilleux	 Canada	Team Europcar	25	123
 59	Thomas Voeckler	 France	Team Europcar	34	65
 61	Janez Brajkovic	 Slovenia	Astana	29	DNS-7
@@ -74,31 +74,31 @@ tdf = '''
 71	Thibaut Pinot	 France	FDJ.fr	23	DNS-16
 72	William Bonnet	 France	FDJ.fr	31	DNF-18
 73	Nacer Bouhanni	 France	FDJ.fr	22	DNF-6
-74	Pierrick Fédrigo	 France	FDJ.fr	34	59
+74	Pierrick Fï¿½drigo	 France	FDJ.fr	34	59
 75	Murilo Fischer	 Brazil	FDJ.fr	34	133
 76	Alexandre Geniez	 France	FDJ.fr	25	44
 77	Arnold Jeannesson	 France	FDJ.fr	27	29
-78	Jérémy Roy	 France	FDJ.fr	30	126
+78	Jï¿½rï¿½my Roy	 France	FDJ.fr	30	126
 79	Arthur Vichot	 France	FDJ.fr	24	66
-81	Jean-Christophe Péraud	 France	Ag2r-La Mondiale	36	DNF-17
+81	Jean-Christophe Pï¿½raud	 France	Ag2r-La Mondiale	36	DNF-17
 82	Romain Bardet	 France	Ag2r-La Mondiale	22	15
 83	Maxime Bouet	 France	Ag2r-La Mondiale	26	DNS-6
 84	Samuel Dumoulin	 France	Ag2r-La Mondiale	32	143
 85	Hubert Dupont	 France	Ag2r-La Mondiale	32	34
 86	John Gadret	 France	Ag2r-La Mondiale	34	22
 87	Blel Kadri	 France	Ag2r-La Mondiale	26	125
-88	Sébastien Minard	 France	Ag2r-La Mondiale	31	124
+88	Sï¿½bastien Minard	 France	Ag2r-La Mondiale	31	124
 89	Christophe Riblon	 France	Ag2r-La Mondiale	32	37
 91	Alberto Contador	 Spain	Team Saxo-Tinkoff	30	4
 92	Daniele Bennati	 Italy	Team Saxo-Tinkoff	32	107
-93	Jesús Hernández	 Spain	Team Saxo-Tinkoff	31	43
+93	Jesï¿½s Hernï¿½ndez	 Spain	Team Saxo-Tinkoff	31	43
 94	Roman Kreuziger	 Czech Republic	Team Saxo-Tinkoff	27	5
-95	Benjamín Noval	 Spain	Team Saxo-Tinkoff	34	DNF-9
-96	Sérgio Paulinho	 Portugal	Team Saxo-Tinkoff	33	136
+95	Benjamï¿½n Noval	 Spain	Team Saxo-Tinkoff	34	DNF-9
+96	Sï¿½rgio Paulinho	 Portugal	Team Saxo-Tinkoff	33	136
 97	Nicolas Roche	 Ireland	Team Saxo-Tinkoff	28	40
 98	Michael Rogers	 Australia	Team Saxo-Tinkoff	33	16
 99	Matteo Tosatto	 Italy	Team Saxo-Tinkoff	39	92
-101	Joaquim Rodríguez	 Spain	Team Katusha	34	3
+101	Joaquim Rodrï¿½guez	 Spain	Team Katusha	34	3
 102	Pavel Brutt	 Russia	Team Katusha	31	110
 103	Alexander Kristoff	 Norway	Team Katusha	25	147
 104	Aleksandr Kuschynski	 Belarus	Team Katusha	33	141
@@ -107,31 +107,31 @@ tdf = '''
 107	Gatis Smukulis	 Latvia	Team Katusha	26	119
 108	Yuri Trofimov	 Russia	Team Katusha	29	51
 109	Eduard Vorganov	 Russia	Team Katusha	30	48
-111	Igor Antón	 Spain	Euskaltel-Euskadi	30	69
+111	Igor Antï¿½n	 Spain	Euskaltel-Euskadi	30	69
 112	Mikel Astarloza	 Spain	Euskaltel-Euskadi	33	42
 113	Gorka Izagirre	 Spain	Euskaltel-Euskadi	25	DNS-17
 114	Jon Izagirre	 Spain	Euskaltel-Euskadi	24	23
-115	Juan José Lobato	 Spain	Euskaltel-Euskadi	24	78
+115	Juan Josï¿½ Lobato	 Spain	Euskaltel-Euskadi	24	78
 116	Mikel Nieve	 Spain	Euskaltel-Euskadi	29	12
-117	Juan José Oroz	 Spain	Euskaltel-Euskadi	32	165
-118	Rubén Pérez	 Spain	Euskaltel-Euskadi	31	139
+117	Juan Josï¿½ Oroz	 Spain	Euskaltel-Euskadi	32	165
+118	Rubï¿½n Pï¿½rez	 Spain	Euskaltel-Euskadi	31	139
 119	Romain Sicard	 France	Euskaltel-Euskadi	25	122
 121	Alejandro Valverde	 Spain	Movistar Team	33	8
 122	Andrey Amador	 Costa Rica	Movistar Team	26	54
 123	Jonathan Castroviejo	 Spain	Movistar Team	26	97
 124	Rui Costa	 Portugal	Movistar Team	26	27
 125	Imanol Erviti	 Spain	Movistar Team	29	118
-126	José Iván Gutiérrez	 Spain	Movistar Team	34	DNF-9
-127	Rubén Plaza	 Spain	Movistar Team	33	47
+126	Josï¿½ Ivï¿½n Gutiï¿½rrez	 Spain	Movistar Team	34	DNF-9
+127	Rubï¿½n Plaza	 Spain	Movistar Team	33	47
 128	Nairo Quintana	 Colombia	Movistar Team	23	2
-129	José Joaquín Rojas	 Spain	Movistar Team	28	79
-131	Rein Taaramäe	 Estonia	Cofidis	26	102
+129	Josï¿½ Joaquï¿½n Rojas	 Spain	Movistar Team	28	79
+131	Rein Taaramï¿½e	 Estonia	Cofidis	26	102
 132	Yoann Bagot	 France	Cofidis	25	DNF-3
-133	Jérôme Coppel	 France	Cofidis	26	63
-134	Egoitz García	 Spain	Cofidis	27	115
-135	Christophe Le Mével	 France	Cofidis	32	DNF-19
+133	Jï¿½rï¿½me Coppel	 France	Cofidis	26	63
+134	Egoitz Garcï¿½a	 Spain	Cofidis	27	115
+135	Christophe Le Mï¿½vel	 France	Cofidis	32	DNF-19
 136	Guillaume Levarlet	 France	Cofidis	27	61
-137	Luis Ángel Maté	 Spain	Cofidis	29	88
+137	Luis ï¿½ngel Matï¿½	 Spain	Cofidis	29	88
 138	Rudy Molard	 France	Cofidis	23	73
 139	Daniel Navarro	 Spain	Cofidis	29	9
 141	Damiano Cunego	 Italy	Lampre-Merida	31	55
@@ -142,12 +142,12 @@ tdf = '''
 146	Adriano Malori	 Italy	Lampre-Merida	25	DNF-7
 147	Manuele Mori	 Italy	Lampre-Merida	32	76
 148	Przemyslaw Niemiec	 Poland	Lampre-Merida	33	57
-149	José Serpa	 Colombia	Lampre-Merida	34	21
+149	Josï¿½ Serpa	 Colombia	Lampre-Merida	34	21
 151	Mark Cavendish	 United Kingdom	Omega Pharma-Quick Step	28	148
 152	Sylvain Chavanel	 France	Omega Pharma-Quick Step	34	31
 153	Michal Kwiatkowski	 Poland	Omega Pharma-Quick Step	23	11
 154	Tony Martin	 Germany	Omega Pharma-Quick Step	28	106
-155	Jérôme Pineau	 France	Omega Pharma-Quick Step	33	159
+155	Jï¿½rï¿½me Pineau	 France	Omega Pharma-Quick Step	33	159
 156	Gert Steegmans	 Belgium	Omega Pharma-Quick Step	32	153
 157	Niki Terpstra	 Netherlands	Omega Pharma-Quick Step	29	149
 158	Matteo Trentin	 Italy	Omega Pharma-Quick Step	23	142
@@ -183,7 +183,7 @@ tdf = '''
 192	Roy Curvers	 Netherlands	Argos-Shimano	33	145
 193	Koen de Kort	 Netherlands	Argos-Shimano	30	138
 194	Tom Dumoulin	 Netherlands	Argos-Shimano	22	41
-195	Johannes Fröhlinger	 Germany	Argos-Shimano	28	146
+195	Johannes Frï¿½hlinger	 Germany	Argos-Shimano	28	146
 196	Simon Geschke	 Germany	Argos-Shimano	27	75
 197	Marcel Kittel	 Germany	Argos-Shimano	25	166
 198	Albert Timmer	 Netherlands	Argos-Shimano	28	164
@@ -203,7 +203,7 @@ tdf = '''
 214	Jonathan Hivert	 France	Sojasun	28	151
 215	Cyril Lemoine	 France	Sojasun	30	112
 216	Jean-Marc Marino	 France	Sojasun	29	116
-217	Maxime Méderel	 France	Sojasun	32	52
+217	Maxime Mï¿½derel	 France	Sojasun	32	52
 218	Julien Simon	 France	Sojasun	27	87
 219	Alexis Vuillermoz	 France	Sojasun	25	46
 '''
@@ -214,7 +214,7 @@ def init_license_holders():
 	large_delete_all( LicenseHolder )
 	large_delete_all( Team )
 
-	tdf = tdf.decode('iso-8859-1').strip()
+	tdf = tdf.strip()
 	lines = tdf.split( '\n' )
 	
 	@transaction.atomic
