@@ -8,7 +8,7 @@ import shutil
 import datetime
 from collections import defaultdict
 import operator
-from subprocess import call, check_call
+from manage import managemain
 
 # Import a RaceDB.sqlite3 database into a configured database.
 # You must configure the database connection in DatabaseConfig.py.
@@ -106,7 +106,7 @@ with open(DatabaseConfigFName, 'r') as fp:
 	
 def handle_call( args ):
 	try:
-		check_call( args )
+		managemain( args )
 	except:
 		# Restore the configuration file if anything goes wrong.
 		with open(DatabaseConfigFName, 'w') as fp:
@@ -117,21 +117,21 @@ tt = TimeTracker()
 		
 tt.start('migrating database')
 sys.stderr.write( '**** Migrating DB...\n' )
-handle_call( ['python', 'manage.py', 'migrate'] )
+handle_call( ['manage.py', 'migrate'] )
 
 switch_configuration( to_database=False )
 
 tt.start('migrating sqlite3 database')
 sys.stderr.write( '**** Migrating RaceDB.sqlite3...\n' )
-handle_call( ['python', 'manage.py', 'migrate'] )
+handle_call( ['manage.py', 'migrate'] )
 
 tt.start('fixing sqlite3 database')
 sys.stderr.write( '**** Fixing RaceDB.sqlite3 data...\n' )
-handle_call( ['python', 'manage.py', 'fix_data'] )
+handle_call( ['manage.py', 'fix_data'] )
 
 tt.start('extracting json data from sqlite3')
 sys.stderr.write( '**** Extracting RaceDB.sqlite3 data to {}...\n'.format(JsonFName) )
-handle_call( ['python', 'manage.py', 'dumpdata', 'core', '--output', JsonFName] )
+handle_call( ['manage.py', 'dumpdata', 'core', '--output', JsonFName] )
 
 tt.start( 'cleansing json data' )
 sys.stderr.write( '**** Cleansing Json File...\n' )
@@ -140,18 +140,18 @@ json_cleanse( JsonFName )
 switch_configuration( to_database=True )
 tt.start('dropping existing data')
 sys.stderr.write( '**** Dropping existing database data...\n' )
-handle_call( ['python', 'manage.py', 'flush', '--noinput'] )
+handle_call( ['manage.py', 'flush', '--noinput'] )
 
 try:
 	sys.stderr.write( '**** Loading data into database...\n' )
 	tt.start('loading data')
-	handle_call( ['python', 'manage.py', 'loaddata', JsonFName] )
+	handle_call( ['manage.py', 'loaddata', JsonFName] )
 finally:
 	sys.stderr.write( 'Cleanup...\n' )
 	os.remove( JsonFName )
 
 tt.start( 'creating standard users' )
-handle_call( ['python', 'manage.py', 'create_users'] )
+handle_call( ['manage.py', 'create_users'] )
 	
 tt.end()
 sys.stderr.write( '\n' )
