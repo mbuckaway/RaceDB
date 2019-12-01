@@ -8,7 +8,7 @@ import shutil
 import datetime
 from collections import defaultdict
 import operator
-from manage import managemain
+from subprocess import check_call
 
 # Extract a MySql, Postgres or Oracle database and create an sqlite database file.
 # You must configure the database connection in DatabaseConfig.py.
@@ -106,7 +106,7 @@ with open(DatabaseConfigFName, 'r') as fp:
 	
 def handle_call( args ):
 	try:
-		managemain( args )
+		check_call( args )
 	except:
 		# Restore the configuration file if anything goes wrong.
 		with open(DatabaseConfigFName, 'w') as fp:
@@ -117,7 +117,7 @@ tt = TimeTracker()
 
 tt.start( 'extracting json data' )
 sys.stderr.write( '**** Extracting database data to {}...\n'.format(JsonFName) )
-handle_call( ['manage.py', 'dumpdata', 'core', '--output', JsonFName] )
+handle_call( ['python', 'manage.py', 'dumpdata', 'core', '--output', JsonFName] )
 
 tt.start( 'cleansing json data' )
 sys.stderr.write( '**** Cleansing Json File...\n' )
@@ -131,13 +131,13 @@ try:
 	os.remove( Sqlite3FName )
 except:
 	pass	# May fail if file doesn't exist.  That's OK.
-handle_call( ['manage.py', 'migrate'] )
+handle_call( ['python', 'manage.py', 'migrate'] )
 
 tt.start( 'loading json data' )
-handle_call( ['manage.py', 'loaddata', JsonFName] )
+handle_call( ['python', 'manage.py', 'loaddata', JsonFName] )
 
 tt.start( 'creating standard users' )
-handle_call( ['manage.py', 'create_users'] )
+handle_call( ['python', 'manage.py', 'create_users'] )
 	
 switch_configuration( to_database=True )
 

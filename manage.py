@@ -9,7 +9,7 @@ except:
 	import builtins
 	builtins.__dict__['RaceDBVersion'] = version
 
-def managemain(args):
+if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "RaceDB.settings")
     sys.stderr.write( 'RaceDBVersion={}\n'.format(RaceDBVersion) )
     try:
@@ -35,8 +35,4 @@ def managemain(args):
     sys.stderr.write( 'ServerTimeZone="{}"\n'.format(settings.TIME_ZONE) )
     sys.stderr.write( 'python="{}"\n'.format(sys.version) )
     
-    execute_from_command_line(args)
-
-
-if __name__ == "__main__":
-    managemain(sys.argv)
+    execute_from_command_line(sys.argv)
