@@ -5,3 +5,5 @@ RaceDB/__pycache__
 RaceDB/static_root
 core/static
 install/
+RaceDB.sqlite*
+RaceDB/DatabaseConfig.py

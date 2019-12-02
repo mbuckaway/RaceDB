@@ -133,9 +133,10 @@ tt.start('extracting json data from sqlite3')
 sys.stderr.write( '**** Extracting RaceDB.sqlite3 data to {}...\n'.format(JsonFName) )
 handle_call( ['python', 'manage.py', 'dumpdata', 'core', '--output', JsonFName] )
 
-tt.start( 'cleansing json data' )
-sys.stderr.write( '**** Cleansing Json File...\n' )
-json_cleanse( JsonFName )
+# Does not seem to be required. Leaving here in case of emergency
+#tt.start( 'cleansing json data' )
+#sys.stderr.write( '**** Cleansing Json File...\n' )
+#json_cleanse( JsonFName )
 
 switch_configuration( to_database=True )
 tt.start('dropping existing data')
